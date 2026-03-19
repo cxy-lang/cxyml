@@ -1,0 +1,11 @@
+package:
+  name: cxyml
+  version: 0.1.0
+  author: n
+  description: n
+  license: MIT
+
+dependencies: []
+
+tests:
+  - file: "src/**/*.cxy"
