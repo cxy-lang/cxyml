@@ -112,7 +112,12 @@ static const char *normaliseText(CxymlParser *p,
     // For very long text the pool is used as scratch space.
     char  *buf  = allocFromMemPool(p->pool, len + 1);
     u32    out  = 0;
-    bool   inWs = true; // start as true to trim leading whitespace
+    // Start in whitespace-skipping mode only when the text opens with a
+    // newline — that means it's block indentation and should be trimmed.
+    // A text node that starts with a plain space (e.g. " and cxyml…"
+    // immediately after a closing inline tag) carries a meaningful
+    // inter-element space that must survive as a single space character.
+    bool   inWs = (len > 0 && (src[0] == '\n' || src[0] == '\r'));
 
     for (u32 i = 0; i < len; i++) {
         char c = src[i];
@@ -320,9 +325,11 @@ static CxymlNode *parseElement(CxymlParser *p)
 static CxymlNode *parseTextNode(CxymlParser *p)
 {
     CxymlToken  tok  = parserNext(p);
-    // Preserve trailing space when the next token is an interpolation so that
-    // "Hello {{ name }}" renders as "Hello World" and not "HelloWorld".
-    bool trimTrailing = !parserCheck(p, CXYML_TOK_INTERP_EXPR);
+    // Preserve trailing space when the next token is an interpolation or an
+    // opening tag so that "Built with <a>Cxy</a> and" renders with spaces on
+    // both sides and not "withCxy".
+    bool trimTrailing = !parserCheck(p, CXYML_TOK_INTERP_EXPR) &&
+                        !parserCheck(p, CXYML_TOK_OPEN);
     const char *normalised = normaliseText(p, tok.start, tok.len, trimTrailing);
 
     // Whitespace-only text: keep as a single space when sitting between inline
