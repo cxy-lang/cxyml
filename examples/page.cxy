@@ -1,0 +1,159 @@
+import plugin "cxyml" as cxyml
+import { View } from "../src/view.cxy"
+import { Navbar } from "./components/navbar.cxy"
+import { Card } from "./components/card.cxy"
+import { Badge } from "./components/badge.cxy"
+import { Footer } from "./components/footer.cxy"
+
+// ============================================================================
+// PostCard - a blog post preview combining Card and Badge
+// ============================================================================
+
+pub class PostCard: View {
+    - _title:    String;
+    - _excerpt:  String;
+    - _href:     String;
+
+    func `init`(title: String, excerpt: String, tag: String, href: String) {
+        _title   = &&title
+        _excerpt = &&excerpt
+        _tag     = &&tag
+        _href    = &&href
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("""
+            <div class="post-card">
+                <div class="post-card-meta">
+                    <Badge label={{ _tag }} variant="default" />
+                </div>
+                <h2 class="post-card-title">
+                    <a href={{ _href }}>{{ _title }}</a>
+                </h2>
+                <p class="post-card-excerpt">{{ _excerpt }}</p>
+                <a href={{ _href }} class="read-more">Read more →</a>
+                <Footer brand="Mans World"/>
+            </div>
+        """)
+    }
+}
+
+// ============================================================================
+// HeroSection - full-width banner with a headline and call-to-action
+// ============================================================================
+
+pub class HeroSection: View {
+    - _headline: String;
+    - _sub:      String;
+
+    func `init`(headline: String, sub: String) {
+        _headline = &&headline
+        _sub      = &&sub
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("""
+            <section class="hero">
+                <div class="hero-inner">
+                    <h1 class="hero-headline">{{ _headline }}</h1>
+                    <p class="hero-sub">{{ _sub }}</p>
+                    <a href="/blog" class="btn btn-primary">Browse Posts</a>
+                </div>
+            </section>
+        """)
+    }
+}
+
+// ============================================================================
+// BlogPage - the full page; assembles every component above
+// ============================================================================
+
+pub class BlogPage: View {
+    - _username: String;
+    - _featured: String;   // title of the featured post
+
+    func `init`(username: String, featured: String) {
+        _username = &&username
+        _featured = &&featured
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("""
+            <html>
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>{{ _username }}'s Blog</title>
+                    <link href="/style.css" rel="stylesheet" />
+                </head>
+                <body>
+
+                    <!-- Navigation -->
+                    <Navbar brand={{ _username }} />
+
+                    <!-- Hero banner -->
+                    <HeroSection
+                        headline={{ f"Welcome to {_username}'s Blog" }}
+                        sub="Thoughts on Cxy, systems programming, and everything in between." />
+
+                    <!-- Featured post highlight -->
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Featured</h2>
+                            <Badge label="Featured" variant="warning" />
+                        </div>
+
+                        <Card
+                            title={{ _featured }}
+                            body="A deep dive into how cxyml compiles XML-like markup to
+                                  efficient stream writes at compile time - zero runtime
+                                  parsing, zero allocations."
+                            badge="New" />
+                    </div>
+
+                    <!-- Recent posts grid -->
+                    <div class="container">
+                        <h2>Recent Posts</h2>
+                        <div class="post-grid">
+                            <PostCard
+                                title="Getting Started with Cxyml"
+                                excerpt="Learn how to define your first component and render it server-side."
+                                tag="Tutorial"
+                                href="/posts/getting-started" />
+
+                            <PostCard
+                                title="Composing Components"
+                                excerpt="How to build complex pages from small, reusable View classes."
+                                tag="Guide"
+                                href="/posts/composing-components" />
+
+                            <PostCard
+                                title="Interpolation and Expressions"
+                                excerpt="Using {{ }} to embed live Cxy expressions inside your markup."
+                                tag="Deep Dive"
+                                href="/posts/interpolation" />
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <footer class="site-footer">
+                        <p>© 2025 {{ _username }}. Built with Cxy.</p>
+                    </footer>
+
+                </body>
+            </html>
+        """)
+    }
+}
+
+// ============================================================================
+// Entry point - render the page to stdout
+// ============================================================================
+
+func main(): i32 {
+    var page = BlogPage("Alice".S, "How Cxyml Works Under the Hood".S)
+    page.render(&stdout)
+    return 0
+}

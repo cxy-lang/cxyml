@@ -1,0 +1,28 @@
+module badge
+
+import plugin "cxyml" as cxyml
+import { View } from "../../src/view.cxy"
+
+// A small pill/badge for labels, statuses, and counts.
+//
+// Usage:
+//   <Badge label="New" variant="success" />
+//   <Badge label="42" variant="warning" />
+//
+// Renders:
+//   <span class="badge badge-success">New</span>
+
+pub class Badge: View {
+    - _label:   String;
+    - _variant: String;   // "default" | "success" | "warning" | "error"
+
+    func `init`(label: String, variant: String = "default".S) {
+        _label   = &&label
+        _variant = &&variant
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("<span class={{ f\"badge badge-{_variant}\" }}>{{ _label }}</span>")
+    }
+}

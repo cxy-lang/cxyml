@@ -1,0 +1,30 @@
+import { UserList, UserEntry } from "./components/user_list.cxy"
+
+// ============================================================================
+// Entry point
+//
+// Builds a UserList with a realistic mix of roles and active/inactive states,
+// then renders the full HTML table to stdout.
+// ============================================================================
+
+func main(): i32 {
+
+    // -- Populated list ------------------------------------------------------
+
+    var team = UserList("Team Members".S)
+
+    team.addUser(UserEntry("Alice Chen".S,    "alice@example.com".S,   "admin".S,  true))
+    team.addUser(UserEntry("Bob Marlow".S,    "bob@example.com".S,     "member".S, true))
+    team.addUser(UserEntry("Carol Smith".S,   "carol@example.com".S,   "member".S, false))
+    team.addUser(UserEntry("Dave Torres".S,   "dave@example.com".S,    "guest".S,  true))
+    team.addUser(UserEntry("Eve Nakamura".S,  "eve@example.com".S,     "guest".S,  false))
+
+    team.render(&stdout)
+
+    // -- Empty list — exercises the {{ if _users.empty() }} branch -----------
+
+    var empty = UserList("New Project".S)
+    empty.render(&stdout)
+
+    return 0
+}

@@ -1,0 +1,48 @@
+module card
+
+import plugin "cxyml" as cxyml
+import { View } from "../../src/view.cxy"
+import { Badge } from "./badge.cxy"
+
+// A card container with a title, body text, and an optional badge label.
+//
+// Usage:
+//   <Card title="Getting Started" body="Learn how to use cxyml." />
+//   <Card title="Release" body="Version 2.0 is out." badge="New" />
+//
+// Renders:
+//   <div class="card">
+//     <div class="card-header">
+//       <h3>Getting Started</h3>
+//     </div>
+//     <div class="card-body">
+//       <p>Learn how to use cxyml.</p>
+//     </div>
+//   </div>
+
+pub class Card: View {
+    - _title: String;
+    - _body:  String;
+    - _badge: String;   // null = no badge
+
+    func `init`(title: String, body: String, badge: String = null) {
+        _title = &&title
+        _body  = &&body
+        _badge = &&badge
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("""
+            <div class="card">
+                <div class="card-header">
+                    <h3>{{ _title }}</h3>
+                    <Badge label={{ _badge }} variant="success" />
+                </div>
+                <div class="card-body">
+                    <p>{{ _body }}</p>
+                </div>
+            </div>
+        """)
+    }
+}

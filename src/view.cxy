@@ -1,0 +1,307 @@
+module view
+
+import { Vector } from "stdlib/vector.cxy"
+import { HashMap } from "stdlib/hash.cxy"
+
+type AttributeMap = HashMap[String, String]
+
+// ============================================================================
+// HTML escaping
+// ============================================================================
+
+// HTML-escape a string so it is safe to embed in HTML text content or
+// attribute values.  Only the five characters that have special meaning
+// in HTML are replaced:
+//
+//   &  →  &amp;
+//   <  →  &lt;
+//   >  →  &gt;
+//   "  →  &quot;
+//   '  →  &#39;
+//
+// Called by the cxyml plugin's generated code to escape interpolated
+// expressions ({{ expr }}).  Static markup written by the plugin itself
+// is trusted and does NOT go through this path.
+//
+// Writes directly to the OutputStream to avoid allocating a temporary String.
+
+pub func htmlEscape[T](os: &OutputStream, input: const T): void {
+    #if T.isNumber || T.isBoolean {
+        os << input
+    }
+    else #if T.isString {
+        for ch: input {
+            switch ch.0 {
+                '&' => os << "&amp;"
+                '<' => os << "&lt;"
+                '>' => os << "&gt;"
+                '"' => os << "&quot;"
+                '\'' => os << "&#39;"
+                ... => os << ch.0
+            }
+        }
+    }
+    else {
+        error!("htmlEscape: unsupported type {t}, expected String, Number, or Bool", #T)
+    }
+}
+
+// Global macro — callable from any module without an import.
+// The plugin's generated code emits cxymlHtmlEscape(os, expr) for every
+// interpolated expression.  The macro delegates to the real htmlEscape
+// function defined above.
+macro cxymlHtmlEscape(OS, ARGS) = (module.htmlEscape(OS!, ARGS!))
+
+// ============================================================================
+// ViewBase — attribute management and render contract
+// ============================================================================
+
+pub class ViewBase {
+    - _attributes: AttributeMap = null;
+    - _parent: Optional[&This] = null;
+
+    // Attribute management
+    func setAttribute(key: String, value: String): void {
+        if (_attributes == null) {
+            _attributes = AttributeMap()
+        }
+        _attributes.insert(&&key, &&value)
+    }
+
+    const func getAttribute(key: String): Optional[&String] {
+        if _attributes == null {
+            return null
+        }
+        return _attributes.get(key)
+    }
+
+    func removeAttribute(key: String) {
+        if (_attributes == null) {
+            return
+        }
+        _attributes.remove(key)
+    }
+
+    func clearAttributes(): void {
+        if (_attributes != null) {
+            _attributes.clear()
+        }
+    }
+
+    // Specialised attribute helpers — class and id
+
+    func setClass(className: String): void {
+        setAttribute("class".S, &&className)
+    }
+
+    const func getClass(): String {
+        var result = getAttribute("class".S)
+        if (result) {
+            return __copy!(*result)
+        }
+        return null
+    }
+
+    func addClass(className: String): void {
+        var current = getClass()
+        if (current == null) {
+            setClass(&&className)
+        } else {
+            var newClass = f"{current} {className}"
+            setClass(&&newClass)
+        }
+    }
+
+    func removeClass(@unused className: String): void {
+        // TODO: Implement class removal logic
+    }
+
+    const func getId(): String {
+        var id = getAttribute("id".S)
+        if id {
+            // id is an option to a reference so we need to copy it
+            return __copy!(*id)
+        }
+        return null
+    }
+
+    func setId(id: String): void {
+        setAttribute("id".S, &&id)
+    }
+
+    virtual func render(os: &OutputStream): void
+}
+
+// ============================================================================
+// View — composable element with children and a tag name
+// ============================================================================
+
+pub class View: ViewBase {
+
+    _children: Vector[ViewBase] = null;
+    _tag: String = null
+
+    func `init`() {}
+
+    // Child management
+
+    func addChild(child: This): void {
+        if (_children == null) {
+            _children = Vector[ViewBase]()
+        }
+        child._parent = this
+        _children.push(&&child)
+    }
+
+    func removeChild(index: u64): bool {
+        if (_children == null || index >= _children.size()) {
+            return false
+        }
+        _children.[index as i32]._parent = null
+        _children.removeAt(index as i32)
+        return true
+    }
+
+    func clearChildren(): void {
+        if (_children != null) {
+            for (child: _children) {
+                child.0._parent = null
+            }
+            _children.clear()
+        }
+    }
+
+    // Rendering
+
+    @override
+    virtual func render(os: &OutputStream): void {
+        // Opening tag
+        os << "<"
+        if _tag != null {
+            os << _tag
+        }
+
+        // Attributes
+        if (_attributes != null) {
+            for (key, value: _attributes) {
+                os << " " << key << "=\"" << value << "\""
+            }
+        }
+
+        if (_children != null) {
+            os << ">"
+            for child: _children {
+                child.0.render(os)
+            }
+            os << "</"
+            if _tag != null {
+                os << _tag
+            }
+            os << ">"
+        } else {
+            os << " />"
+        }
+    }
+
+    virtual func renderToString(): String {
+        var s = String()
+        render(&s)
+        return &&s
+    }
+
+    // Getters
+
+    @inline
+    const func tag() => &_tag
+
+    @inline
+    const func childrenCount() => _children != null ? _children.size() : 0
+
+    @inline
+    const func parent() => _parent
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+test "View creation and basic properties" {
+    var view = View()
+    ok!(view.childrenCount() == 0)
+    ok!(!view.parent())
+}
+
+test "View attribute management" {
+    var view = View()
+    view.setAttribute("data-test".S, "value".S)
+
+    var attr = view.getAttribute("data-test".S)
+    ok!(!!attr)
+    ok!(*attr == "value".S)
+
+    view.removeAttribute("data-test".S)
+    var removed = view.getAttribute("data-test".S)
+    ok!(!removed)
+}
+
+test "View class management" {
+    var view = View()
+
+    view.setClass("btn".S)
+    var className = view.getClass()
+    ok!(className != null)
+    ok!(className == "btn".S)
+
+    view.addClass("btn-primary".S)
+    var multiClass = view.getClass()
+    ok!(multiClass != null)
+    ok!(multiClass == "btn btn-primary".S)
+}
+
+test "View ID management" {
+    var view = View()
+
+    view.setId("test-id".S)
+    var id = view.getId()
+    ok!(id != null)
+    ok!(id == "test-id".S)
+}
+
+test "View child management" {
+    var parent = View()
+    var child1 = View()
+    var child2 = View()
+
+    parent.addChild(&&child1)
+    ok!(parent.childrenCount() == 1)
+
+    parent.addChild(&&child2)
+    ok!(parent.childrenCount() == 2)
+
+    parent.removeChild(0)
+    ok!(parent.childrenCount() == 1)
+
+    parent.clearChildren()
+    ok!(parent.childrenCount() == 0)
+}
+
+test "View rendering basic structure" {
+    var view = View()
+    view._tag = "div".S
+    view.setId("container".S)
+    view.setClass("wrapper".S)
+
+    var html = view.renderToString()
+    ok!(html != null)
+    // Should contain opening tag
+    ok!(html.contains("<div"))
+}
+
+test "View parent-child relationship" {
+    var parent = View()
+    var child = View()
+
+    ok!(!child.parent())
+    parent.addChild(child)
+    ok!(!!child.parent())
+}

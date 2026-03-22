@@ -1,3 +1,18 @@
 package cxyml
 
-export { hello } from "./src/hello.cxy"
+// Core view infrastructure — ViewBase, View, and the htmlEscape utility
+export { ViewBase, View, htmlEscape } from "./src/view.cxy"
+
+// HTML element classes
+export {
+    Text,
+    Button,
+    Input,
+    Label,
+    Span,
+    P,
+    H1, H2, H3,
+    A,
+    Img,
+    Div
+} from "./src/elements.cxy"

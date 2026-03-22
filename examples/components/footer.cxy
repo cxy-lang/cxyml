@@ -1,0 +1,25 @@
+module footer
+
+import plugin "cxyml" as cxyml
+import { View } from "../../src/view.cxy"
+
+// A site footer component whose markup lives in an external .cxyml file.
+//
+// Usage:
+//   <Footer brand="MySite" />
+//
+// The markup is loaded from footer.cxyml at compile time and cached by
+// the plugin — subsequent compilations only re-parse if the file changes.
+
+pub class Footer: View {
+    - _brand: String;
+
+    func `init`(brand: String) {
+        _brand = &&brand
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("footer.cxyml")
+    }
+}

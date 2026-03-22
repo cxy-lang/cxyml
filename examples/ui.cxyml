@@ -1,0 +1,138 @@
+<!-- cxyml/examples/ui.cxyml -->
+<!--
+    External markup file loaded via:
+
+        cxyml::render("examples/ui.cxyml")
+
+    This file demonstrates the .cxyml format used for file-based rendering.
+    The syntax is identical to inline markup - tags, attributes, interpolation,
+    components, and comments all work the same way.
+-->
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{{ _title }}</title>
+        <link href="/style.css" rel="stylesheet" />
+    </head>
+    <body>
+
+        <!-- Top navigation -->
+        <Navbar brand={{ _brand }} />
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-inner">
+                <h1 class="hero-headline">{{ _headline }}</h1>
+                <p class="hero-sub">{{ _subheading }}</p>
+                <div class="hero-actions">
+                    <a href="/get-started" class="btn btn-primary">Get Started</a>
+                    <a href="/docs" class="btn btn-secondary">Read the Docs</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature cards -->
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Why Cxyml?</h2>
+                <div class="feature-grid">
+
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Compile-Time Rendering</h3>
+                        <p>
+                            Markup is transformed into direct stream writes at compile time.
+                            Zero runtime parsing, zero allocations per request.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🧩</div>
+                        <h3>Component Model</h3>
+                        <p>
+                            Components are plain Cxy classes. Compose them with uppercase
+                            tags just like any other element.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Type-Safe Props</h3>
+                        <p>
+                            Attributes map to constructor arguments. The Cxy compiler
+                            checks types — no stringly-typed APIs.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent posts -->
+        <section class="recent-posts">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Recent Posts</h2>
+                    <Badge label={{ _postCount }} variant="default" />
+                </div>
+                <div class="post-grid">
+                    <PostCard
+                        title="Getting Started"
+                        excerpt="Your first component in five minutes."
+                        tag="Tutorial"
+                        href="/posts/getting-started" />
+
+                    <PostCard
+                        title="Composing Components"
+                        excerpt="Build complex pages from small, reusable pieces."
+                        tag="Guide"
+                        href="/posts/composing-components" />
+
+                    <PostCard
+                        title="Interpolation Deep Dive"
+                        excerpt="Everything you can put inside {{ }} and why it works."
+                        tag="Deep Dive"
+                        href="/posts/interpolation" />
+                </div>
+                <div class="view-all">
+                    <a href="/posts" class="btn btn-outline">View all posts →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter signup -->
+        <section class="newsletter">
+            <div class="container">
+                <h2>Stay in the Loop</h2>
+                <p>Get new posts delivered straight to your inbox.</p>
+                <form action="/subscribe" method="POST" class="subscribe-form">
+                    <input type="email" name="email" placeholder="you@example.com" required />
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="container">
+                <div class="footer-cols">
+                    <div class="footer-col">
+                        <strong>{{ _brand }}</strong>
+                        <p>Built with Cxy and cxyml.</p>
+                    </div>
+                    <div class="footer-col">
+                        <strong>Links</strong>
+                        <ul>
+                            <li><a href="/docs">Documentation</a></li>
+                            <li><a href="/examples">Examples</a></li>
+                            <li><a href="https://github.com/cxy-lang/cxy">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <p class="footer-copy">© 2025 {{ _brand }}. All rights reserved.</p>
+            </div>
+        </footer>
+
+    </body>
+</html>

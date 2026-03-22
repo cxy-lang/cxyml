@@ -1,0 +1,52 @@
+import plugin "cxyml" as cxyml
+import { View } from "../src/view.cxy"
+
+// ============================================================================
+// Greeting
+//
+// A minimal component whose markup lives entirely in an external file.
+// The plugin resolves "greeting.cxyml" relative to this source file at
+// compile time — no runtime file I/O occurs.
+//
+// Usage:
+//
+//   var card = Greeting("Alice".S, "Welcome aboard!".S, true)
+//   card.render(&stdout)
+// ============================================================================
+
+pub class Greeting: View {
+    - _name:        String;
+    - _message:     String;
+    - _showFooter:  bool;
+
+    func `init`(name: String, message: String, showFooter: bool = false) {
+        _name       = &&name
+        _message    = &&message
+        _showFooter = showFooter
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("greeting.cxyml")
+    }
+}
+
+// ============================================================================
+// Entry point
+// ============================================================================
+
+func main(): i32 {
+    // With footer
+    var card = Greeting(
+        "Alice".S,
+        "Welcome to server-side rendering with Cxy.".S,
+        true
+    )
+    card.render(&stdout)
+
+    // Without footer
+    var plain = Greeting("Bob".S, "Just a quick hello.".S)
+    plain.render(&stdout)
+
+    return 0
+}

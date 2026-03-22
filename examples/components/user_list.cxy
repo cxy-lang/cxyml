@@ -1,0 +1,125 @@
+module user_list
+
+import plugin "cxyml" as cxyml
+import { View } from "../../src/view.cxy"
+import { Badge } from "./badge.cxy"
+import { Vector } from "stdlib/vector.cxy"
+
+// ============================================================================
+// UserEntry  —  plain data class for a single row in the table
+// ============================================================================
+
+pub class UserEntry {
+    name:   String;
+    email:  String;
+    role:   String;   // "admin" | "member" | "guest"
+    active: bool;
+
+    func `init`(name: String, email: String, role: String, active: bool) {
+        this.name   = &&name
+        this.email  = &&email
+        this.role   = &&role
+        this.active = active
+    }
+}
+
+// ============================================================================
+// UserList
+//
+// Renders a table of UserEntry rows.  Demonstrates:
+//
+//   {{ for user in _users }}          — iterate every entry
+//   {{ if … }} … {{ else }} … {{ /if }}  — empty-state guard
+//   {{ if … }} … {{ else if … }} … {{ else }} … {{ /if }}  — role badge
+//   {{ if … }} … {{ else }} … {{ /if }}  — active / inactive status
+//
+// Usage:
+//
+//   var list = UserList("Team Members".S)
+//   list.addUser(UserEntry("Alice".S,  "alice@example.com".S,  "admin".S,  true))
+//   list.addUser(UserEntry("Bob".S,    "bob@example.com".S,    "member".S, true))
+//   list.addUser(UserEntry("Charlie".S,"charlie@example.com".S,"guest".S,  false))
+//   list.render(&stdout)
+// ============================================================================
+
+pub class UserList: View {
+    - _title: String;
+    - _users: Vector[UserEntry];
+
+    func `init`(title: String = "Users".S) {
+        _title = &&title
+        _users = Vector[UserEntry]()
+    }
+
+    func addUser(user: UserEntry): void {
+        _users.push(&&user)
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        var classUserList = "user-list".S
+        cxyml::render("""
+            <section class={{ classUserList }}>
+
+                <div class="user-list-header">
+                    <h2>{{ _title }}</h2>
+                </div>
+
+                {{ if _users.empty() }}
+
+                    <!-- No rows — show a friendly empty state -->
+                    <div class="empty-state">
+                        <p>No users found.</p>
+                    </div>
+
+                {{ else }}
+
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {{ for user in _users }}
+                            <tr class="user-row">
+
+                                <td class="user-name">{{ user.0.name }}</td>
+                                <td class="user-email">{{ user.0.email }}</td>
+
+                                <!-- Role badge: three-way branch -->
+                                <td class="user-role">
+                                    {{ if user.0.role == "admin" }}
+                                        <Badge label="Admin" variant="error" />
+                                    {{ else if user.0.role == "member" }}
+                                        <Badge label="Member" variant="success" />
+                                    {{ else }}
+                                        <Badge label="Guest" variant="default" />
+                                    {{ /if }}
+                                </td>
+
+                                <!-- Active / inactive indicator -->
+                                <td class="user-status">
+                                    {{ if user.0.active }}
+                                        <span class="status active">Active</span>
+                                    {{ else }}
+                                        <span class="status inactive">Inactive</span>
+                                    {{ /if }}
+                                </td>
+
+                            </tr>
+                            {{ /for }}
+
+                        </tbody>
+                    </table>
+
+                {{ /if }}
+
+            </section>
+        """)
+    }
+}

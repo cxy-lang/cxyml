@@ -1,0 +1,14 @@
+class Var : View {
+
+}
+
+class Container : View {
+    @override
+    func render(os: &OutputStream) {
+        os << "<ul>"
+        for item, _: _items {
+            cxyaml::render(<li><Var value={{item}} /></li>)
+        }
+        os << "</ul>"
+    }
+}

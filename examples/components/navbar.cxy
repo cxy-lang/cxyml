@@ -1,0 +1,40 @@
+module navbar
+
+import plugin "cxyml" as cxyml
+import { View } from "../../src/view.cxy"
+
+// A top navigation bar with a brand name and a fixed set of links.
+//
+// Usage:
+//   <Navbar brand="MySite" />
+//
+// Renders:
+//   <nav class="navbar">
+//     <div class="navbar-brand">MySite</div>
+//     <ul class="navbar-links">
+//       <li><a href="/">Home</a></li>
+//       ...
+//     </ul>
+//   </nav>
+
+pub class Navbar: View {
+    - _brand: String;
+
+    func `init`(brand: String) {
+        _brand = &&brand
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        cxyml::render("""
+            <nav class="navbar">
+                <div class="navbar-brand">{{ _brand }}</div>
+                <ul class="navbar-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                </ul>
+            </nav>
+        """)
+    }
+}

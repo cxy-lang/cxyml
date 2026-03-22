@@ -1,0 +1,9 @@
+<div class="greeting-card">
+    <h1>Hello, {{ _name }}!</h1>
+    <p class="greeting-message">{{ _message }}</p>
+    {{ if _showFooter }}
+    <footer class="card-footer">
+        <small>Rendered with cxyml</small>
+    </footer>
+    {{ /if }}
+</div>

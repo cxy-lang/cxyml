@@ -1,0 +1,328 @@
+module elements
+
+import { View, ViewBase } from "./view.cxy"
+
+// Text node - renders plain text without tags
+pub class Text: View {
+    @static
+    - EMPTY_STRING = String("");
+    - _content: String = null;
+
+    func `init`[T](content: T) {
+        #if T.isString && T.isClass {
+            _content = &&content
+        }
+        else {
+            require!(T.isNumber || T.isString || T.isBoolean,
+                "Unsupported parameter {t}, expected String, Number, or Boolean",
+                #T)
+            _content = String()
+            _content << content
+        }
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        if (_content != null) {
+            os << _content
+        }
+    }
+
+    func setContent(content: String): void {
+        _content = &&content
+    }
+
+    @inline
+    const func content() {
+        if (_content == null)
+            return &EMPTY_STRING
+        return &_content
+    }
+}
+
+// Button element
+pub class Button: View {
+    func `init`(text: String = null) {
+        _tag = "button".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+// Input element (self-closing)
+pub class Input: View {
+    func `init`(typ: String = "text".S) {
+        _tag = "input".S
+        setAttribute("type".S, &&typ)
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        os << "<" << _tag
+
+        if (_attributes != null) {
+            for (key, value: _attributes) {
+                os << " " << key << "=\"" << value << "\""
+            }
+        }
+
+        os << " />"
+    }
+}
+
+// Label element
+pub class Label: View {
+    func `init`(text: String = null) {
+        _tag = "label".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+// Span element
+pub class Span: View {
+    func `init`(text: String = null) {
+        _tag = "span".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+// Paragraph element
+pub class P: View {
+    func `init`(text: String = null) {
+        _tag = "p".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+// Heading elements
+pub class H1: View {
+    func `init`(text: String = null) {
+        _tag = "h1".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+pub class H2: View {
+    func `init`(text: String = null) {
+        _tag = "h2".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+pub class H3: View {
+    func `init`(text: String = null) {
+        _tag = "h3".S
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+// Link element
+pub class A: View {
+    func `init`(href: String = null, text: String = null) {
+        _tag = "a".S
+        if (href != null) {
+            setAttribute("href".S, &&href)
+        }
+        if (text != null) {
+            addChild(Text(&&text))
+        }
+    }
+}
+
+// Image element (self-closing)
+pub class Img: View {
+    func `init`(src: String = null, alt: String = null) {
+        _tag = "img".S
+        if (src != null) {
+            setAttribute("src".S, &&src)
+        }
+        if (alt != null) {
+            setAttribute("alt".S, &&alt)
+        }
+    }
+
+    @override
+    func render(os: &OutputStream): void {
+        os << "<" << _tag
+
+        if (_attributes != null) {
+            for (key, value: _attributes) {
+                os << " " << key << "=\"" << value << "\""
+            }
+        }
+
+        os << " />"
+    }
+}
+
+// Div element (explicit)
+pub class Div: View {
+    func `init`() {
+        _tag = "div".S
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+test "Text element creation and rendering" {
+    var text = Text("Hello World".S)
+    ok!(text.content().size() > 0)
+
+    var html = String()
+    text.render(&html)
+    ok!(html == "Hello World".S)
+}
+
+test "Text element with number" {
+    var text = Text(42)
+    ok!(text.content().size() > 0)
+
+    var html = String()
+    text.render(&html)
+    ok!(html.contains("42"))
+}
+
+test "Button element creation" {
+    var button = Button("Click me".S)
+    ok!(button.tag() == "button".S)
+    ok!(button.childrenCount() == 1)
+}
+
+test "Button element rendering" {
+    var button = Button("Submit".S)
+    var html = button.renderToString()
+    ok!(html.contains("<button"))
+    ok!(html.contains("Submit"))
+    ok!(html.contains("</button>"))
+}
+
+test "Input element with default type" {
+    var input = Input()
+    var typeAttr = input.getAttribute("type".S)
+    ok!(!!typeAttr)
+    ok!(*typeAttr == "text".S)
+}
+
+test "Input element self-closing" {
+    var input = Input("email".S)
+    var html = input.renderToString()
+    ok!(html.contains("<input"))
+    ok!(html.contains("type=\"email\""))
+    ok!(html.contains("/>"))
+    ok!(!html.contains("</input>"))
+}
+
+test "Label element creation" {
+    var label = Label("Username".S)
+    ok!(label.tag() == "label".S)
+    ok!(label.childrenCount() == 1)
+}
+
+test "Span element rendering" {
+    var span = Span("inline text".S)
+    var html = span.renderToString()
+    ok!(html.contains("<span"))
+    ok!(html.contains("inline text"))
+    ok!(html.contains("</span>"))
+}
+
+test "Paragraph element" {
+    var p = P("This is a paragraph".S)
+    ok!(p.tag() == "p".S)
+    var html = p.renderToString()
+    ok!(html.contains("<p"))
+    ok!(html.contains("This is a paragraph"))
+}
+
+test "Heading elements" {
+    var h1 = H1("Title".S)
+    ok!(h1.tag() == "h1".S)
+
+    var h2 = H2("Subtitle".S)
+    ok!(h2.tag() == "h2".S)
+
+    var h3 = H3("Section".S)
+    ok!(h3.tag() == "h3".S)
+}
+
+test "Link element with href and text" {
+    var link = A("https://example.com".S, "Click here".S)
+    ok!(link.tag() == "a".S)
+
+    var href = link.getAttribute("href".S)
+    ok!(!!href)
+    ok!(*href == "https://example.com".S)
+
+    ok!(link.childrenCount() == 1)
+}
+
+test "Link element rendering" {
+    var link = A("https://example.com".S, "Link".S)
+    var html = link.renderToString()
+    ok!(html.contains("<a"))
+    ok!(html.contains("href=\"https://example.com\""))
+    ok!(html.contains("Link"))
+    ok!(html.contains("</a>"))
+}
+
+test "Image element with src and alt" {
+    var img = Img("image.png".S, "Description".S)
+    ok!(img.tag() == "img".S)
+
+    var src = img.getAttribute("src".S)
+    ok!(!!src)
+    ok!(*src == "image.png".S)
+
+    var alt = img.getAttribute("alt".S)
+    ok!(!!alt)
+    ok!(*alt == "Description".S)
+}
+
+test "Image element self-closing" {
+    var img = Img("photo.jpg".S, "A photo".S)
+    var html = img.renderToString()
+    ok!(html.contains("<img"))
+    ok!(html.contains("src=\"photo.jpg\""))
+    ok!(html.contains("alt=\"A photo\""))
+    ok!(html.contains("/>"))
+    ok!(!html.contains("</img>"))
+}
+
+test "Div element creation" {
+    var div = Div()
+    ok!(div.tag() == "div".S)
+    ok!(div.childrenCount() == 0)
+}
+
+test "Complex element hierarchy" {
+    var container = Div()
+    var heading = H1("Welcome".S)
+    var paragraph = P("Hello world".S)
+
+    container.addChild(&&heading)
+    container.addChild(&&paragraph)
+
+    ok!(container.childrenCount() == 2)
+
+    var html = container.renderToString()
+    ok!(html.contains("<div"))
+    ok!(html.contains("<h1"))
+    ok!(html.contains("Welcome"))
+    ok!(html.contains("<p"))
+    ok!(html.contains("Hello world"))
+}
