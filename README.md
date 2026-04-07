@@ -84,6 +84,90 @@ Use `{{ expr }}` to embed any Cxy expression. Values are automatically HTML-esca
 {{ /if }}
 ```
 
+`{{ else }}` is also supported:
+
+```cxyml
+{{ if _posts.empty() }}
+    <div class="empty-state">
+        <p>No posts yet. Check back soon!</p>
+    </div>
+{{ else }}
+    <div class="post-grid">
+        {{ for post in _posts }}
+            <PostCard post={{ __copy!(post.0) }} />
+        {{ /for }}
+    </div>
+{{ /if }}
+```
+
+### Loops
+
+Use `{{ for x in collection }}` / `{{ /for }}` to iterate over any enumerable value. The loop variable is a tuple where `.0` is the element and `.1` is the index (matching Cxy's standard `for` semantics).
+
+```cxyml
+{{ for post in _posts }}
+    <PostCard post={{ __copy!(post.0) }} />
+{{ /for }}
+```
+
+### Attribute Values
+
+Attributes accept three forms:
+
+**Interpolated expression** — any Cxy expression inside `{{ }}`:
+
+```cxyml
+<a href={{ f"/post/{_post.slug}" }}>Read more</a>
+<PostCard post={{ __copy!(post.0) }} />
+```
+
+**String literal** — a bare quoted string (no `{{ }}` needed):
+
+```cxyml
+<Navbar brand="DevBlog" />
+<input type="text" name="title" required />
+```
+
+**Inline string** — same as interpolation but simpler for plain field values:
+
+```cxyml
+<h1 class="{{ _cssClass }}">{{ _title }}</h1>
+```
+
+### Self-Closing Tags
+
+Void HTML elements and components with no children use `/>`:
+
+```cxyml
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="/style.css" />
+<input type="email" name="email" placeholder="you@example.com" required />
+<Navbar brand="DevBlog" />
+```
+
+### HTML Entities
+
+Standard HTML entities pass through untouched:
+
+```cxyml
+<p>By {{ _author }} &middot; {{ _date }}</p>
+<a href="/">&larr; Back to posts</a>
+<title>{{ _title }} &mdash; DevBlog</title>
+```
+
+### Script and Style Blocks
+
+`<script>` and `<style>` block content is passed through as raw text — no escaping or interpolation occurs inside them:
+
+```cxyml
+<script>
+    document.getElementById('my-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        // plain JavaScript — not processed by cxyml
+    });
+</script>
+```
+
 ### External Template Files
 
 Put your markup in a `.cxyml` file and reference it by path. The file is resolved at compile time — no runtime file I/O.
