@@ -1,26 +1,16 @@
 package:
   name: cxyml
-  version: 0.1.0
+  version: 0.1.1
   author: Carter Mbotho<lastcarter@gmail.com>
   description: Compile-time server-side rendering (SSR) library for Cxy — write HTML components in XML-like markup, compiled to direct stream writes with zero runtime parsing
   license: MIT
-
-dependencies: []
 
 builds:
   cxyml-plugin:
     entry: src/plugin/index.c
     output: cxyml
 
-install:
-  #  Install the cxyml plugin
-  - name: cxyml
-    required: true
-    plugin:
-      entry: src/plugin/index.c
-      inputs:
-        - src/plugin/**/*.c
-        - src/plugin/**/*.h
+dependencies: []
 
 tests:
   - file: "src/**/*.cxy"
@@ -31,8 +21,8 @@ scripts:
       - src/plugin/lexer.c
       - src/plugin/parser.c
       - src/plugin/codegen.c
-      - tests/**/test_harness.h
-      - tests/**/*.c
+      - "tests/**/test_harness.h"
+      - "tests/**/*.c"
     outputs:
       - "{{BUILD_DIR}}/cxyml-tests"
     command: |
@@ -43,15 +33,25 @@ scripts:
         CFLAGS="$CFLAGS -D_DARWIN_C_SOURCE"
       fi
       cc $CFLAGS -o {{SCRIPT_OUTPUTS}} ${SOURCES} {{SOURCE_DIR}}/tests/plugin/main.c
-  run-tests:
-    depends: [build-tests]
-    command: "{{BUILD_DIR}}/cxyml-tests"
 
+  run-tests:
+    depends: [ build-tests ]
+    command: "{{BUILD_DIR}}/cxyml-tests"
   build-plugin:
     inputs:
-      - src/**/*.c
+      - "src/**/*.c"
     outputs:
       - "{{BUILD_DIR}}/cxyml-plugin"
     command: |
       cxy build --plugin {{SOURCE_DIR}}/src/plugin/index.c \
         --build-dir {{BUILD_DIR}} -o cxyml
+
+
+install:
+  - name: cxyml
+    plugin:
+      entry: src/plugin/index.c
+      inputs:
+        - "src/plugin/**/*.c"
+        - "src/plugin/**/*.h"
+    required: true
