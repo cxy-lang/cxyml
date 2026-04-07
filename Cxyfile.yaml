@@ -1,8 +1,8 @@
 package:
   name: cxyml
   version: 0.1.0
-  author: n
-  description: n
+  author: Carter Mbotho<lastcarter@gmail.com>
+  description: Compile-time server-side rendering (SSR) library for Cxy — write HTML components in XML-like markup, compiled to direct stream writes with zero runtime parsing
   license: MIT
 
 dependencies: []
