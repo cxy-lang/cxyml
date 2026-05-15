@@ -1,6 +1,6 @@
 package:
   name: cxyml
-  version: 0.1.3
+  version: 0.1.4
   author: Carter Mbotho<lastcarter@gmail.com>
   description: Compile-time server-side rendering (SSR) library for Cxy — write HTML components in XML-like markup, compiled to direct stream writes with zero runtime parsing
   license: MIT
@@ -35,7 +35,7 @@ scripts:
       cc $CFLAGS -o {{SCRIPT_OUTPUTS}} ${SOURCES} {{SOURCE_DIR}}/tests/plugin/main.c
 
   run-tests:
-    depends: [build-tests]
+    depends: [ build-tests ]
     command: "{{BUILD_DIR}}/cxyml-tests"
   build-plugin:
     inputs:
@@ -45,6 +45,7 @@ scripts:
     command: |
       cxy build --plugin {{SOURCE_DIR}}/src/plugin/index.c \
         --build-dir {{BUILD_DIR}} -o cxyml
+
 
 install:
   - name: cxyml
