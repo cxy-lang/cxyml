@@ -35,7 +35,7 @@ scripts:
       cc $CFLAGS -o {{SCRIPT_OUTPUTS}} ${SOURCES} {{SOURCE_DIR}}/tests/plugin/main.c
 
   run-tests:
-    depends: [ build-tests ]
+    depends: [build-tests]
     command: "{{BUILD_DIR}}/cxyml-tests"
   build-plugin:
     inputs:
@@ -45,7 +45,6 @@ scripts:
     command: |
       cxy build --plugin {{SOURCE_DIR}}/src/plugin/index.c \
         --build-dir {{BUILD_DIR}} -o cxyml
-
 
 install:
   - name: cxyml
